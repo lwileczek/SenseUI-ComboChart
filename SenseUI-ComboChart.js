@@ -40,7 +40,7 @@ define(["qlik", "jquery", 'css!./SenseUI-ComboChart.css', './SenseUI-ComboChart-
 			width: $element.width(),
 			contentWidth: $element.width(),
 			height: $element.height(),
-			margin: { top: 20, right: 20, bottom: 40, left: 40 },
+			margin: { top: 20, right: 20, bottom: 40, left: 44 },
 			dimension: layout.qHyperCube.qDimensionInfo[0].title,
 			measure1: {
 				label: layout.qHyperCube.qMeasureInfo[0].qFallbackTitle
@@ -75,6 +75,13 @@ define(["qlik", "jquery", 'css!./SenseUI-ComboChart.css', './SenseUI-ComboChart-
 			data: [],
 			this: this
 		}, layout.vars);
+		
+		vars.margin.left = vars.custLeftMargin;
+		
+		// d3.select() won't allow someone to select an id that starts with a number. Ensure id starts with letter.
+		if (/^\d/.test(vars.id)) {
+		  vars.id = 'a'+vars.id;
+		}
 		vars.bar.total = layout.qHyperCube.qDataPages[0].qMatrix.length;
 		vars.bar.width = parseInt(vars.bar.width);
 		vars.bar.padding = 5;
@@ -134,19 +141,18 @@ define(["qlik", "jquery", 'css!./SenseUI-ComboChart.css', './SenseUI-ComboChart-
 				return barLabelCount;
 			}
 			/*if(inputMeasure >= vars.bar.count) {
-   	return inputMeasure - (inputMeasure - vars.bar.count) - 1;
-   }
-   else {
-   	return inputMeasure;
-   }
-   */
+   	            return inputMeasure - (inputMeasure - vars.bar.count) - 1;
+              } else {
+				  return inputMeasure;
+			  }
+			 */
 		}
 		// CSS
 		vars.css = cssjs(vars);
 		// TEMPLATE
 		vars.template = "\n\t\t\t<div id=\"" + vars.id + "_inner\">\n\t\t\t\t<div class=\"content\"></div>\n\t\t\t</div>\n\t\t";
 
-		// Write Css and html
+		// Write CSS and HTML
 		if ($("#" + vars.id + "_css").length) {
 			// insert only once
 			$("#" + vars.id + "_css").remove();
@@ -155,7 +161,6 @@ define(["qlik", "jquery", 'css!./SenseUI-ComboChart.css', './SenseUI-ComboChart-
 		$("<style id=\"" + vars.id + "_css\">").html(vars.css).appendTo("head");
 		// }
 		$element.html(vars.template);
-
 		// helper Function to round the displayed numbers
 		var roundNumber = function roundNumber(num, noPrecision) {
 			//check if the string passed is number or contains formatting like 13%
@@ -167,18 +172,25 @@ define(["qlik", "jquery", 'css!./SenseUI-ComboChart.css', './SenseUI-ComboChart-
 						num = num.replace(/\.00$/, ''); // Remove .00
 					}
 					num += 'K'; // Add the abbreviation
-				} else if (num >= 1000000 && num < 1000000000) {
+				} else if (num >= 1000000 && num < 1000000000) {  //10e6-10e8 millions
 					num = vars.precision && !noPrecision ? parseFloat(num / 1000000).toFixed(2) : Math.round(num / 1000000);
 					if (/\.00$/.test(num)) {
 						num = num.replace(/\.00$/, ''); // Remove .00
 					}
 					num += 'M'; // Add the abbreviation
-				} else if (num >= 1000000000) {
+				} else if (num >= 1000000000 && num < 1000000000000) { // 10e9-10e11 - billions 
 					num = vars.precision && !noPrecision ? parseFloat(num / 1000000000).toFixed(2) : Math.round(num / 1000000000);
 					if (/\.00$/.test(num)) {
 						num = num.replace(/\.00$/, ''); // Remove .00
 					}
-					num += 'T'; // Add the abbreviation
+					//num += 'T'; // Add the abbreviation  T for Tera? Tera is 10e12 but this is 10e9 which should be G - giga
+					num += 'B';
+				} else if (num >= 1000000000000) { // 10e12
+					num = vars.precision && !noPrecision ? parseFloat(num / 1000000000000).toFixed(2) : Math.round(num / 1000000000000);
+					if (/\.00$/.test(num)) {
+						num = num.replace(/\.00$/, ''); // Remove .00
+					}
+					num += 'T';  // Add the abbreviation T - tera, 10^12 
 				}
 			}
 			return num;
@@ -226,7 +238,7 @@ define(["qlik", "jquery", 'css!./SenseUI-ComboChart.css', './SenseUI-ComboChart-
 		var yAxis = d3.svg.axis().scale(y).orient("left").ticks(3, "").tickFormat(function (d, i) {
 			return roundNumber(d);
 		});
-
+        
 		var svg = d3.select("#" + vars.id + "_inner .content").append("svg").attr("width", width + margin.left + margin.right).attr("height", height + margin.top + margin.bottom).append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
 		// Create Parent Group layering
@@ -289,6 +301,28 @@ define(["qlik", "jquery", 'css!./SenseUI-ComboChart.css', './SenseUI-ComboChart-
 				.style("stroke", refLineColor)
 				.style("stroke-width", lineWidth+"px")		
 				.style("stroke-dasharray", ""+dashWidth);
+		  }
+		}
+		// second reference line
+		if (layout.vars.refLine.show2) {
+		  var lineWidth2 = layout.vars.refLine.width2;
+		  var refLineColor2 = layout.vars.refLine.color2;
+		  var refLineValue2 = layout.vars.refLine.value2;
+		  if (!layout.vars.refLine.dash2) {
+		    svg.append("g")
+				.attr("transform", "translate(0, "+y(refLineValue2)+")")
+				.append("line").attr("x2", width)
+				.style("stroke", refLineColor2)
+				.style("stroke-width", lineWidth2+"px");	
+		  
+		  } else {
+		      var dashWidth2 = layout.vars.refLine.dashWidth2;
+			  svg.append("g")
+				.attr("transform", "translate(0, "+y(refLineValue2)+")")
+				.append("line").attr("x2", width)
+				.style("stroke", refLineColor2)
+				.style("stroke-width", lineWidth2+"px")		
+				.style("stroke-dasharray", ""+dashWidth2);
 		  }
 		}
 
