@@ -52,9 +52,11 @@ var options = {
 								defaultValue: false
 							},						
 							refLineValue: {
-								type: "integer",
+								type: "number",
 								label: "Reference Line",
 								ref: "vars.refLine.value",
+								defaultValue: 0,
+								expression: "optional",
 								show: function(data) {
 									if(data.vars.refLine.show){
 										return true;
@@ -80,6 +82,7 @@ var options = {
 								label: "Line Color",
 								defaultValue: "#FF0000",
 								ref: "vars.refLine.color",
+								expression: 'optional',
 								show: function(data) {
 									if(data.vars.refLine.show){
 										return true;
@@ -109,9 +112,100 @@ var options = {
 								type: "integer",
 								label: "Dash Width",
 								ref: "vars.refLine.dashWidth",
-								defaultValue: 2,
+								min: 1,
+								max: 45,
+								defaultValue: 16,
 								show: function(data) {
 									if(data.vars.refLine.dash && data.vars.refLine.show){
+										return true;
+									}
+								}								
+							},
+							secondLine: {
+								type: "boolean",
+								component: "switch",
+								label: "Add Another Reference Line",
+								ref: "vars.refLine.show2",
+								options: [{
+									value: true,
+									label: "Yes"
+								}, {
+									value: false,
+									label: "No"
+								}],
+								defaultValue: false,
+								show: function(data) {
+									if(data.vars.refLine.show){
+										return true;
+									}
+								}
+							},
+							refLineValue2: {
+								type: "number",
+								label: "Second Reference Line",
+								ref: "vars.refLine.value2",
+								defaultValue: 0,
+								expression: "optional",
+								show: function(data) {
+									if(data.vars.refLine.show2){
+										return true;
+									}
+								}								
+							},
+							refLineWidth2: {
+								type: "integer",
+								label: "Second Reference Line Width",
+								ref: "vars.refLine.width2",
+								min: 1,
+								max: 15,
+								defaultValue: 2,
+								show: function(data) {
+									if(data.vars.refLine.show2){
+										return true;
+									}
+								}								
+							},
+							refLineColor2: {
+								type: "string",
+								expression: "none", 
+								label: "Second Line Color",
+								defaultValue: "#FF0000",
+								ref: "vars.refLine.color2",
+								expression: 'optional',
+								show: function(data) {
+									if(data.vars.refLine.show2){
+										return true;
+									}
+								}
+							},
+							dashRefLine2: {
+								type: "boolean",
+								component: "switch",
+								label: "Dashed Line",
+								ref: "vars.refLine.dash2",
+								options: [{
+									value: true,
+									label: "Dashed"
+								}, {
+									value: false,
+									label: "Solid"
+								}],
+								defaultValue: false,
+								show: function(data) {
+									if(data.vars.refLine.show2){
+										return true;
+									}
+								}
+							},
+							dashRefLineWidth2: {
+								type: "integer",
+								label: "Dash Width",
+								ref: "vars.refLine.dashWidth2",
+								min: 1,
+								max: 45,
+								defaultValue: 16,
+								show: function(data) {
+									if(data.vars.refLine.dash2 && data.vars.refLine.show2){
 										return true;
 									}
 								}								
@@ -196,14 +290,16 @@ var options = {
 								expression: "none",
 								label: "Y-Axis Max (0 for Auto)",
 								defaultValue: 0,
-								ref: "vars.yaxis.max"
+								ref: "vars.yaxis.max",
+								expression: "optional"
 							},
 							yAxisMin: {
 								type: "integer",
 								expression: "none",
 								label: "Y-Axis Min (0 for Auto)",
 								defaultValue: 0,
-								ref: "vars.yaxis.min"
+								ref: "vars.yaxis.min",
+								expression: "optional"
 							},
 							barWidth: {
 								type: "integer",
@@ -290,7 +386,7 @@ var options = {
 									}
 								}
 							},
-							displayLegend: {
+							displayBarText: {
 								type: "boolean",
 								component: "switch",
 								label: "Display Text on Bars",
@@ -303,7 +399,14 @@ var options = {
 									label: "Hide"
 								}],
 								defaultValue: true
-							},							
+							},
+							leftMargin: {
+								type: "integer",
+								expression: "none",
+								label: "Left Margin, Room for Y-Axis",
+								defaultValue: 44,
+								ref: "vars.custLeftMargin"
+							}
 						},
 					},
 					measure1: {
@@ -329,11 +432,12 @@ var options = {
 								expression: "none",
 								label: "Color",
 								defaultValue: "#4477AA",
+								expression: "optional",
 								ref: "vars.measure1.color"
 							},
 							measure1stroke: {
 								type: "string",
-								expression: "none",
+								expression: "optional",
 								label: "Line Width/Bar Border Width",
 								defaultValue: "1",
 								ref: "vars.measure1.stroke"
@@ -349,6 +453,7 @@ var options = {
 								type: "string",
 								expression: "none",
 								label: "Line/Bar Border Color",
+								expression: "optional",
 								defaultValue: "#4477AA",
 								ref: "vars.measure1.strokeColor"
 							},
@@ -447,7 +552,8 @@ var options = {
 								expression: "none",
 								label: "Color",
 								defaultValue: "#ec5e08",
-								ref: "vars.measure2.color"
+								ref: "vars.measure2.color",
+								expression: "optional"
 							},
 							measure2colorHover: {
 								type: "string",
@@ -458,7 +564,7 @@ var options = {
 							},
 							measure2stroke: {
 								type: "string",
-								expression: "none",
+								expression: "optional",
 								label: "Line Width/Bar Border Width",
 								defaultValue: "1",
 								ref: "vars.measure2.stroke"
@@ -467,6 +573,7 @@ var options = {
 								type: "string",
 								expression: "none",
 								label: "Line/Bar Border Color",
+								expression: "optional",
 								defaultValue: "#ec5e08",
 								ref: "vars.measure2.strokeColor"
 							},
@@ -602,7 +709,8 @@ var options = {
 								expression: "none",
 								label: "Color",
 								defaultValue: "#1e9fb3",
-								ref: "vars.measure3.color"
+								ref: "vars.measure3.color",
+								expression: "optional"
 							},
 							measure3colorHover: {
 								type: "string",
@@ -613,7 +721,7 @@ var options = {
 							},
 							measure3stroke: {
 								type: "string",
-								expression: "none",
+								expression: "optional",
 								label: "Line Width/Bar Border",
 								defaultValue: "1",
 								ref: "vars.measure3.stroke"
@@ -622,6 +730,7 @@ var options = {
 								type: "string",
 								expression: "none",
 								label: "Line/Bar Border Color",
+								expression: "optional",
 								defaultValue: "#1e9fb3",
 								ref: "vars.measure3.strokeColor"
 							},
@@ -719,7 +828,8 @@ var options = {
 								expression: "none",
 								label: "Color",
 								defaultValue: "#19ae4b",
-								ref: "vars.measure4.color"
+								ref: "vars.measure4.color",
+								expression: "optional"
 							},
 							measure4colorHover: {
 								type: "string",
@@ -730,7 +840,7 @@ var options = {
 							},
 							measure4stroke: {
 								type: "string",
-								expression: "none",
+								expression: "optional",
 								label: "Line Width/Bar Border",
 								defaultValue: "1",
 								ref: "vars.measure4.stroke"
@@ -739,6 +849,7 @@ var options = {
 								type: "string",
 								expression: "none",
 								label: "Line/Bar Border Color",
+								expression: "optional",
 								defaultValue: "#19ae4b",
 								ref: "vars.measure4.strokeColor"
 							},
@@ -836,7 +947,8 @@ var options = {
 								expression: "none",
 								label: "Color",
 								defaultValue: "#ff4040",
-								ref: "vars.measure5.color"
+								ref: "vars.measure5.color",
+								expression: "optional"
 							},
 							measure5colorHover: {
 								type: "string",
@@ -847,7 +959,7 @@ var options = {
 							},
 							measure5stroke: {
 								type: "string",
-								expression: "none",
+								expression: "optional",
 								label: "Line Width/Bar Border",
 								defaultValue: "1",
 								ref: "vars.measure5.stroke"
@@ -856,6 +968,7 @@ var options = {
 								type: "string",
 								expression: "none",
 								label: "Line/Bar Border Color",
+								expression: "optional",
 								defaultValue: "#ff4040",
 								ref: "vars.measure5.strokeColor"
 							},
@@ -953,7 +1066,8 @@ var options = {
 								expression: "none",
 								label: "Color",
 								defaultValue: "#ffc342",
-								ref: "vars.measure6.color"
+								ref: "vars.measure6.color",
+								expression: "optional"
 							},
 							measure6colorHover: {
 								type: "string",
@@ -964,7 +1078,7 @@ var options = {
 							},
 							measure6stroke: {
 								type: "string",
-								expression: "none",
+								expression: "optional",
 								label: "Line Width/Bar Border",
 								defaultValue: "1",
 								ref: "vars.measure6.stroke"
@@ -973,6 +1087,7 @@ var options = {
 								type: "string",
 								expression: "none",
 								label: "Line/Bar Border Color",
+								expression: "optional",
 								defaultValue: "#ffc342",
 								ref: "vars.measure6.strokeColor"
 							},
@@ -1070,7 +1185,8 @@ var options = {
 								expression: "none",
 								label: "Color",
 								defaultValue: "#bebebe",
-								ref: "vars.measure7.color"
+								ref: "vars.measure7.color",
+								expression: "optional"
 							},
 							measure7colorHover: {
 								type: "string",
@@ -1081,7 +1197,7 @@ var options = {
 							},
 							measure7stroke: {
 								type: "string",
-								expression: "none",
+								expression: "optional",
 								label: "Line Width/Bar Border",
 								defaultValue: "1",
 								ref: "vars.measure7.stroke"
@@ -1090,6 +1206,7 @@ var options = {
 								type: "string",
 								expression: "none",
 								label: "Line/Bar Border Color",
+								expression: "optional",
 								defaultValue: "#bebebe",
 								ref: "vars.measure7.strokeColor"
 							},
